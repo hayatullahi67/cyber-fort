@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: cyber-fort
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VIRUSTOTAL_API_KEY
+        sync: false
+    healthCheckPath: /api/check-url
+    autoDeploy: true 
