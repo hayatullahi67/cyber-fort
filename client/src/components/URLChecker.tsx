@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useCheckHistory, UrlCheckResult } from "@/contexts/CheckHistoryContext";
+import { UrlCheckResult } from "@/contexts/CheckHistoryContext";
 import CollapsibleHistory from "./CollapsibleHistory";
 import axios from "axios";
 
@@ -17,9 +17,11 @@ interface HistoryItem {
   status: "safe" | "unsafe";
 }
 
+const STORAGE_KEY = 'url_check_history';
+
 export default function URLChecker() {
   const [url, setUrl] = useState("");
-  const { urlHistory, setUrlHistory } = useCheckHistory();
+  const [urlHistory, setUrlHistory] = useState<UrlCheckResult[]>([]);
   const [checkResult, setCheckResult] = useState<{
     isSafe: boolean;
     result: string;
@@ -35,25 +37,18 @@ export default function URLChecker() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial history with modern React Query syntax
-  const historyQuery = useQuery({
-    queryKey: ["/api/url-history"],
-    queryFn: () => 
-      apiRequest("GET", "/api/url-history").then(res => {
-        if (!res.ok) throw new Error("Failed to load history");
-        return res.json();
-      }),
-  });
-
-  // Handle history query results
+  // Load history from localStorage on component mount
   useEffect(() => {
-    if (historyQuery.data) {
-      setUrlHistory(historyQuery.data || []);
+    const savedHistory = localStorage.getItem(STORAGE_KEY);
+    if (savedHistory) {
+      setUrlHistory(JSON.parse(savedHistory));
     }
-    if (historyQuery.error) {
-      setUrlHistory([]);
-    }
-  }, [historyQuery.data, historyQuery.error, setUrlHistory]);
+  }, []);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(urlHistory));
+  }, [urlHistory]);
 
   // URL check mutation
   const checkUrlMutation = useMutation({
@@ -218,7 +213,7 @@ export default function URLChecker() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="rounded-r-none bg-white dark:bg-gray-700"
+                className="rounded-r-none bg-white dark:bg-gray-700 outline-none  focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
               />
               <Button 
                 type="submit" 
