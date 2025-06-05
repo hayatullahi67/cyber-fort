@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
           {
             headers: {
-              'x-apikey': process.env.VirusTotal_API
+              'x-apikey': apiKey
             }
           }
         );
