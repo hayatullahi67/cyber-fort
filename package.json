@@ -78,7 +78,7 @@
     "ws": "^8.18.0",
     "zod": "^3.23.8",
     "zod-validation-error": "^3.4.0",
-    "@vitejs/plugin-react": "^4.3.2"
+    "vite": "^5.4.19"
 
   },
   "devDependencies": {
@@ -102,8 +102,7 @@
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
     "tsx": "^4.19.1",
-    "typescript": "5.6.3",
-    "vite": "^5.4.19"
+    "typescript": "5.6.3"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
