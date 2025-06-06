@@ -82,6 +82,56 @@ app.use(express.urlencoded({ extended: false }));
 // Environment variable for API key (set this in your Render dashboard)
 const VIRUSTOTAL_API_KEY = process.env.VIRUSTOTAL_API_KEY || "fa445174a59c7519b96f92c1a1897ff5eb0d0a3051c0130ea7a039e63da29966";
 
+// Helper function to check URL existence
+async function checkUrlExistence(url: string): Promise<{
+  exists: boolean;
+  statusCode: number;
+  finalUrl: string;
+  warnings: string[];
+}> {
+  const warnings: string[] = [];
+  let finalUrl = url;
+  let statusCode = 0;
+  let exists = false;
+
+  try {
+    const response = await axios.get(url, {
+      maxRedirects: 3,
+      validateStatus: (status) => true, // Accept all status codes
+      timeout: 10000, // 10 second timeout
+    });
+
+    statusCode = response.status;
+    finalUrl = response.request.res.responseUrl || url;
+
+    // Check if status code indicates success
+    exists = statusCode >= 200 && statusCode < 300;
+
+    // Add warnings for non-200 status codes
+    if (!exists) {
+      warnings.push(`HTTP Status: ${statusCode}`);
+    }
+
+    // Check for redirects
+    if (response.request.res.responseUrl && response.request.res.responseUrl !== url) {
+      warnings.push(`URL redirected to: ${response.request.res.responseUrl}`);
+    }
+
+  } catch (error: any) {
+    if (error.code === 'ECONNREFUSED') {
+      warnings.push('Connection refused - server may be down');
+    } else if (error.code === 'ENOTFOUND') {
+      warnings.push('Domain not found - DNS resolution failed');
+    } else if (error.code === 'ETIMEDOUT') {
+      warnings.push('Connection timed out');
+    } else {
+      warnings.push(`Connection error: ${error.message}`);
+    }
+  }
+
+  return { exists, statusCode, finalUrl, warnings };
+}
+
 // VirusTotal URL checking route
 app.post('/api/check-url', async (req: Request, res: Response) => {
   try {
@@ -105,6 +155,9 @@ app.post('/api/check-url', async (req: Request, res: Response) => {
     } catch (e) {
       return res.status(400).json({ error: "Invalid URL format. Please enter a valid URL." });
     }
+
+    // Check URL existence first
+    const existenceCheck = await checkUrlExistence(processedUrl);
     
     // First, submit the URL for analysis
     const scanResponse = await axios.post(
@@ -171,17 +224,22 @@ app.post('/api/check-url', async (req: Request, res: Response) => {
     // Format response
     const result = {
       url: processedUrl,
-      isSafe,
-      result: issues.length > 0 ? issues.join(", ") : "No threats detected",
-      sslIssues: sslIssues.length > 0 ? sslIssues : undefined,
-      hasSslIssues: sslIssues.length > 0,
-      riskScore: Math.min(riskScore, 100),
-      stats: {
-        total: stats.total,
-        malicious: stats.malicious,
-        suspicious: stats.suspicious,
-        undetected: stats.undetected
-      }
+      safe: isSafe,
+      exists: existenceCheck.exists,
+      safety_report: {
+        stats: {
+          total: stats.total,
+          malicious: stats.malicious,
+          suspicious: stats.suspicious,
+          undetected: stats.undetected
+        },
+        risk_score: Math.min(riskScore, 100),
+        issues: issues.length > 0 ? issues : ["No threats detected"],
+        ssl_issues: sslIssues.length > 0 ? sslIssues : undefined
+      },
+      http_status: existenceCheck.statusCode,
+      final_url: existenceCheck.finalUrl,
+      warnings: [...existenceCheck.warnings, ...(sslIssues.length > 0 ? sslIssues : [])]
     };
     
     res.json(result);
