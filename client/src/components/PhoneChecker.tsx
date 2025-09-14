@@ -542,7 +542,7 @@ export default function PhoneChecker() {
       
       // Update history (keep last 10 items)
       setPhoneHistory(prev => {
-        const newHistory = [historyItem, ...prev].slice(0, 10);
+        const newHistory = [historyItem, ...prev];
         return newHistory;
       });
     },
@@ -608,14 +608,14 @@ export default function PhoneChecker() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Phone Number Checker</h2>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {storageStatus}
+            {/* {storageStatus} */}
           </div>
         </div>
         
         <form onSubmit={handleSubmit} className="mb-4">
           <div className="mb-4">
             <Label htmlFor="phone-input" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-              Enter phone number to check
+              Enter your phone number (include your country code, e.g., +1, +234, etc.).
             </Label>
             <div className="flex">
               <Input

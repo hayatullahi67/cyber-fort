@@ -235,7 +235,7 @@ export default function URLChecker() {
       const historyItem: UrlCheckResult = {
         id: Date.now(),
         url: data.url,
-        isSafe: data.safe,
+        isSafe: data.safe && data.exists,
         result: data.exists 
           ? (data.safe ? "Safe - No threats detected" : `Dangerous - ${data.safety_report.issues.join(", ")}`)
           : "URL does not exist",
@@ -292,7 +292,7 @@ export default function URLChecker() {
   const historyItems: HistoryItem[] = urlHistory.map(item => ({
     id: item.id,
     title: item.url,
-    subtitle: item.isSafe ? "Safe - No threats detected" : `Dangerous - ${item.result}`,
+    subtitle: item.result,
     timestamp: item.checkedAt,
     status: item.isSafe ? "safe" as const : "unsafe" as const
   }));
@@ -303,7 +303,7 @@ export default function URLChecker() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">URL Checker</h2>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {storageStatus}
+            {/* {storageStatus} */}
           </div>
         </div>
 
@@ -419,9 +419,9 @@ export default function URLChecker() {
                       }
                     </p>
                     {checkResult.warnings && checkResult.warnings.length > 0 && (
-                      <ul className="mt-2 list-disc list-inside">
+                      <ul className="mt-2 list-disc list-inside space-y-1 break-words text-wrapper  max-w-[400px]">
                         {checkResult.warnings.map((warning, index) => (
-                          <li key={index}>{warning}</li>
+                          <li key={index} className="break-words whitespace-normal">{warning}</li>
                         ))}
                       </ul>
                     )}
@@ -432,7 +432,7 @@ export default function URLChecker() {
 
             {/* Safety Status */}
             {checkResult.exists && (
-              <div className={`p-4 rounded-lg border ${
+               <div className={`p-4 rounded-lg border ${
                 checkResult.safe ? "border-green-500" : "border-red-500"
               }`}>
                 <div className="flex">
@@ -451,7 +451,7 @@ export default function URLChecker() {
                       )}
                     </span>
                   </div>
-                  <div className="ml-3">
+                  <div className="ml-3 min-w-0">
                     <h3 className={`text-sm font-medium ${
                       checkResult.safe ? "text-green-800 dark:text-green-300" : "text-red-800 dark:text-red-300"
                     }`}>
@@ -460,16 +460,16 @@ export default function URLChecker() {
                     <div className={`mt-2 text-sm ${
                       checkResult.safe ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
                     }`}>
-                      <p>
+                      <p className="break-words">
                         {checkResult.safe 
                           ? "No malicious content or suspicious patterns detected"
                           : "This URL shows signs of being malicious or compromised"
                         }
                       </p>
                       {checkResult.safety_report.issues && checkResult.safety_report.issues.length > 0 && (
-                        <ul className="mt-2 list-disc list-inside">
+                        <ul className="mt-2 list-disc list-inside space-y-1">
                           {checkResult.safety_report.issues.map((issue, index) => (
-                            <li key={index}>{issue}</li>
+                            <li key={index} className="break-words whitespace-normal">{issue}</li>
                           ))}
                         </ul>
                       )}
@@ -492,9 +492,9 @@ export default function URLChecker() {
                     <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">SSL Certificate Warning</h3>
                     <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
                       <p>⚠️ Potential SSL Issue: The website's security certificate may be expired, misconfigured, or untrusted. Proceed with caution.</p>
-                      <ul className="mt-2 list-disc list-inside">
+                      <ul className="mt-2 list-disc list-inside space-y-1">
                         {checkResult.safety_report.ssl_issues.map((issue, index) => (
-                          <li key={index}>{issue}</li>
+                          <li key={index} className="break-words">{issue}</li>
                         ))}
                       </ul>
                     </div>
