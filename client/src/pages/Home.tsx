@@ -5,7 +5,7 @@ import URLChecker from "@/components/URLChecker";
 import PhoneChecker from "@/components/PhoneChecker";
 import { useMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import BlinkPayButton from "@/components/BlinkPayButton";
 export default function Home() {
   const { isMobile } = useMobile();
   const [activeTab, setActiveTab] = useState("url");
@@ -38,6 +38,9 @@ export default function Home() {
         )}
       </main>
       
+      <BlinkPayButton />
+      <br />
+      <br />
       <Footer />
     </div>
   );
